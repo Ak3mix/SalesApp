@@ -13,7 +13,10 @@ import {
   Trash2,
   DollarSign,
   CreditCard,
-  Edit
+  Edit,
+  Camera,
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as XLSX from 'xlsx';
@@ -38,6 +41,7 @@ interface Product {
   stock: number;
   initial_stock: number;
   category: string;
+  image?: string;
 }
 
 interface CartItem extends Product {
@@ -108,6 +112,7 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
   const [formCost, setFormCost] = useState('');
   const [formStock, setFormStock] = useState('');
   const [formCategory, setFormCategory] = useState('');
+  const [formImage, setFormImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (showEditProduct) {
@@ -116,12 +121,14 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
       setFormCost((showEditProduct.cost || 0).toString());
       setFormStock(showEditProduct.stock.toString());
       setFormCategory(showEditProduct.category || '');
+      setFormImage(showEditProduct.image || null);
     } else if (showAddProduct) {
       setFormName('');
       setFormPrice('');
       setFormCost('');
       setFormStock('');
       setFormCategory('');
+      setFormImage(null);
     }
   }, [showEditProduct, showAddProduct]);
 
@@ -154,7 +161,8 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
       price,
       cost,
       initial_stock: stock,
-      category: formCategory.trim()
+      category: formCategory.trim(),
+      image: formImage || undefined
     };
 
     console.log("handleAddProduct: Sending data:", data);
@@ -213,7 +221,8 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
       price,
       cost,
       stock,
-      category: formCategory.trim()
+      category: formCategory.trim(),
+      image: formImage || undefined
     };
 
     console.log("handleEditProduct: Sending data to /api/products/" + showEditProduct.id, data);
@@ -306,7 +315,18 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
           .sort((a, b) => a.name.localeCompare(b.name))
           .map(product => (
           <div key={product.id} className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col gap-4">
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-start gap-4">
+              {product.image ? (
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-20 h-20 object-cover rounded-xl shrink-0 bg-stone-100"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-stone-100 rounded-xl shrink-0 flex items-center justify-center">
+                  <ImageIcon size={32} className="text-stone-300" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="font-black text-stone-900 text-lg leading-tight truncate">{product.name}</div>
                 <div className="text-xs text-stone-400 mt-1">
@@ -384,6 +404,43 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
                       className="w-full bg-stone-50 border-none rounded-xl p-3 focus:ring-2 ring-stone-900" 
                     />
                   </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-stone-400 mb-1 block">Foto del producto</label>
+                    <div className="flex gap-3 items-center">
+                      {formImage ? (
+                        <div className="relative">
+                          <img src={formImage} alt="Vista previa" className="w-24 h-24 object-cover rounded-xl bg-stone-100" />
+                          <button
+                            type="button"
+                            onClick={() => setFormImage(null)}
+                            className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full hover:bg-rose-600"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-24 h-24 bg-stone-100 rounded-xl cursor-pointer hover:bg-stone-200 transition-colors">
+                          <Camera size={32} className="text-stone-400" />
+                          <span className="text-[10px] text-stone-500 mt-1 font-bold">Agregar</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setFormImage(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-[10px] uppercase font-bold text-stone-400 mb-1 block">Precio</label>
@@ -458,6 +515,43 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
                       placeholder="Ej: Bebidas, Snacks, etc."
                       className="w-full bg-stone-50 border-none rounded-xl p-3 focus:ring-2 ring-stone-900" 
                     />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-stone-400 mb-1 block">Foto del producto</label>
+                    <div className="flex gap-3 items-center">
+                      {formImage ? (
+                        <div className="relative">
+                          <img src={formImage} alt="Vista previa" className="w-24 h-24 object-cover rounded-xl bg-stone-100" />
+                          <button
+                            type="button"
+                            onClick={() => setFormImage(null)}
+                            className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full hover:bg-rose-600"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-24 h-24 bg-stone-100 rounded-xl cursor-pointer hover:bg-stone-200 transition-colors">
+                          <Camera size={32} className="text-stone-400" />
+                          <span className="text-[10px] text-stone-500 mt-1 font-bold">Agregar</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setFormImage(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
