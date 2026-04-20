@@ -14,7 +14,7 @@ import {
   DollarSign,
   CreditCard,
   Edit,
-  Camera,
+  Camera as CameraIcon,
   Image as ImageIcon,
   X
 } from 'lucide-react';
@@ -23,6 +23,7 @@ import * as XLSX from 'xlsx';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { format } from 'date-fns';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -113,6 +114,40 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
   const [formStock, setFormStock] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formImage, setFormImage] = useState<string | null>(null);
+
+  const takePhoto = async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera
+      });
+      if (photo.base64String) {
+        const imageFormat = photo.format || 'jpeg';
+        setFormImage(`data:image/${imageFormat};base64,${photo.base64String}`);
+      }
+    } catch (error) {
+      console.error('Error al tomar foto:', error);
+    }
+  };
+
+  const selectPhotoFromGallery = async () => {
+    try {
+      const photo = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Photos
+      });
+      if (photo.base64String) {
+        const imageFormat = photo.format || 'jpeg';
+        setFormImage(`data:image/${imageFormat};base64,${photo.base64String}`);
+      }
+    } catch (error) {
+      console.error('Error al seleccionar foto:', error);
+    }
+  };
 
   useEffect(() => {
     if (showEditProduct) {
@@ -419,25 +454,24 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center w-24 h-24 bg-stone-100 rounded-xl cursor-pointer hover:bg-stone-200 transition-colors">
-                          <Camera size={32} className="text-stone-400" />
-                          <span className="text-[10px] text-stone-500 mt-1 font-bold">Agregar</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setFormImage(reader.result as string);
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                            className="hidden"
-                          />
-                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={takePhoto}
+                            className="flex flex-col items-center justify-center w-24 h-24 bg-emerald-50 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors border-2 border-emerald-200"
+                          >
+                            <CameraIcon size={32} className="text-emerald-500" />
+                            <span className="text-[10px] text-emerald-600 mt-1 font-bold">Cámara</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={selectPhotoFromGallery}
+                            className="flex flex-col items-center justify-center w-24 h-24 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors border-2 border-blue-200"
+                          >
+                            <ImageIcon size={32} className="text-blue-500" />
+                            <span className="text-[10px] text-blue-600 mt-1 font-bold">Galería</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -531,25 +565,24 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
                           </button>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center w-24 h-24 bg-stone-100 rounded-xl cursor-pointer hover:bg-stone-200 transition-colors">
-                          <Camera size={32} className="text-stone-400" />
-                          <span className="text-[10px] text-stone-500 mt-1 font-bold">Agregar</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setFormImage(reader.result as string);
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                            className="hidden"
-                          />
-                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={takePhoto}
+                            className="flex flex-col items-center justify-center w-24 h-24 bg-emerald-50 rounded-xl cursor-pointer hover:bg-emerald-100 transition-colors border-2 border-emerald-200"
+                          >
+                            <CameraIcon size={32} className="text-emerald-500" />
+                            <span className="text-[10px] text-emerald-600 mt-1 font-bold">Cámara</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={selectPhotoFromGallery}
+                            className="flex flex-col items-center justify-center w-24 h-24 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors border-2 border-blue-200"
+                          >
+                            <ImageIcon size={32} className="text-blue-500" />
+                            <span className="text-[10px] text-blue-600 mt-1 font-bold">Galería</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1144,13 +1177,24 @@ export default function App() {
                         onClick={() => addToCart(product)}
                         disabled={product.stock <= 0}
                         className={cn(
-                          "p-3 sm:p-4 rounded-3xl border text-left transition-all active:scale-95 flex flex-col justify-between min-h-[120px]",
+                          "p-3 sm:p-4 rounded-3xl border text-left transition-all active:scale-95 flex flex-col justify-between min-h-[140px]",
                           product.stock > 0 
                             ? "bg-white border-stone-200 shadow-sm hover:border-emerald-200" 
                             : "bg-stone-50 border-stone-100 opacity-60 grayscale"
                         )}
                       >
-                        <div>
+                        <div className="w-full">
+                          {product.image ? (
+                            <img 
+                              src={product.image} 
+                              alt={product.name}
+                              className="w-full h-20 object-cover rounded-2xl mb-2 bg-stone-100"
+                            />
+                          ) : (
+                            <div className="w-full h-20 bg-stone-100 rounded-2xl mb-2 flex items-center justify-center">
+                              <ImageIcon size={28} className="text-stone-300" />
+                            </div>
+                          )}
                           <div className="font-black text-stone-900 text-sm leading-tight mb-1 line-clamp-2">{product.name}</div>
                           <div className="text-emerald-600 font-black text-base">${product.price.toFixed(2)}</div>
                           {product.category && (
@@ -1257,9 +1301,20 @@ export default function App() {
               
               <div className="overflow-y-auto flex-1 space-y-3 mb-6 pr-1">
                 {cart.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-2xl">
-                    <div className="flex-1">
-                      <div className="font-bold text-stone-800">{item.name}</div>
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-stone-50 rounded-2xl">
+                    {item.image ? (
+                      <img 
+                        src={item.image} 
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-xl bg-stone-100 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-stone-100 rounded-xl shrink-0 flex items-center justify-center">
+                        <ImageIcon size={24} className="text-stone-300" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-stone-800 truncate">{item.name}</div>
                       <div className="text-xs text-stone-500">${item.price.toFixed(2)} c/u</div>
                     </div>
                     <div className="flex items-center gap-3">
