@@ -57,7 +57,8 @@ interface Movement {
 interface Sale {
   id: number;
   total: number;
-  payment_method: 'cash' | 'transfer';
+  payment_method: 'cash' | 'transfer' | 'split';
+  payments?: { method: 'cash' | 'transfer'; amount: number }[];
   timestamp: string;
 }
 
@@ -887,7 +888,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'split' | null>(null);
+  const [splitPayments, setSplitPayments] = useState<{ cash: number; transfer: number }>({ cash: 0, transfer: 0 });
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -945,15 +947,26 @@ export default function App() {
     if (!paymentMethod) return;
     setLoading(true);
     try {
-      const res = await api.createSale({
+      const saleData: any = {
         items: cart,
         payment_method: paymentMethod,
         total: cartTotal
-      });
+      };
+      
+      // If split payment, include the payment breakdown
+      if (paymentMethod === 'split') {
+        saleData.payments = [
+          { method: 'cash' as const, amount: splitPayments.cash },
+          { method: 'transfer' as const, amount: splitPayments.transfer }
+        ];
+      }
+      
+      const res = await api.createSale(saleData);
       if (res) {
         setCart([]);
         setShowPaymentModal(false);
         setPaymentMethod(null);
+        setSplitPayments({ cash: 0, transfer: 0 });
         await fetchProducts();
         alert("¡Venta realizada con éxito!");
       } else {
@@ -1191,23 +1204,106 @@ export default function App() {
 
         {showPaymentModal && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4">
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="bg-white w-full max-w-md rounded-t-[40px] p-8 shadow-2xl">
-              <div className="w-12 h-1.5 bg-stone-200 rounded-full mx-auto mb-8" />
+            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="bg-white w-full max-w-md rounded-t-[40px] p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+              <div className="w-12 h-1.5 bg-stone-200 rounded-full mx-auto mb-6" />
               <h3 className="text-2xl font-black text-center mb-2">Método de Pago</h3>
-              <p className="text-stone-500 text-center mb-8">Selecciona cómo pagará el cliente</p>
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <button onClick={() => setPaymentMethod('cash')} className={cn("flex flex-col items-center gap-3 p-6 rounded-3xl border-2 transition-all", paymentMethod === 'cash' ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-stone-100 bg-stone-50 text-stone-500")}>
-                  <DollarSign size={32} />
-                  <span className="font-bold">Efectivo</span>
+              <p className="text-stone-500 text-center mb-6">Selecciona cómo pagará el cliente</p>
+              
+              {/* Payment Method Selection */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <button 
+                  onClick={() => { setPaymentMethod('cash'); setSplitPayments({ cash: cartTotal, transfer: 0 }); }} 
+                  className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'cash' ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-stone-100 bg-stone-50 text-stone-500")}
+                >
+                  <DollarSign size={28} />
+                  <span className="font-bold text-xs">Efectivo</span>
                 </button>
-                <button onClick={() => setPaymentMethod('transfer')} className={cn("flex flex-col items-center gap-3 p-6 rounded-3xl border-2 transition-all", paymentMethod === 'transfer' ? "border-blue-500 bg-blue-50 text-blue-700" : "border-stone-100 bg-stone-50 text-stone-500")}>
-                  <CreditCard size={32} />
-                  <span className="font-bold">Transferencia</span>
+                <button 
+                  onClick={() => { setPaymentMethod('transfer'); setSplitPayments({ cash: 0, transfer: cartTotal }); }} 
+                  className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'transfer' ? "border-blue-500 bg-blue-50 text-blue-700" : "border-stone-100 bg-stone-50 text-stone-500")}
+                >
+                  <CreditCard size={28} />
+                  <span className="font-bold text-xs">Transferencia</span>
+                </button>
+                <button 
+                  onClick={() => { setPaymentMethod('split'); setSplitPayments({ cash: cartTotal / 2, transfer: cartTotal / 2 }); }} 
+                  className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'split' ? "border-purple-500 bg-purple-50 text-purple-700" : "border-stone-100 bg-stone-50 text-stone-500")}
+                >
+                  <div className="flex items-center gap-1">
+                    <DollarSign size={14} />
+                    <span className="text-xs font-black">+</span>
+                    <CreditCard size={14} />
+                  </div>
+                  <span className="font-bold text-xs">Combinado</span>
                 </button>
               </div>
+
+              {/* Split Payment Inputs */}
+              {paymentMethod === 'split' && (
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 mb-6 space-y-4">
+                  <div className="text-center mb-2">
+                    <p className="text-xs font-bold text-purple-600 uppercase tracking-widest">Total a pagar</p>
+                    <p className="text-2xl font-black text-purple-700">${cartTotal.toFixed(2)}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block flex items-center gap-2">
+                      <DollarSign size={12} /> Efectivo
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={splitPayments.cash.toFixed(2)}
+                      onChange={(e) => {
+                        const cash = parseFloat(e.target.value) || 0;
+                        const remaining = Math.max(0, cartTotal - cash);
+                        setSplitPayments({ cash, transfer: remaining });
+                      }}
+                      className="w-full bg-white border-2 border-purple-200 rounded-xl p-3 focus:ring-2 ring-purple-500 font-bold text-lg"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-stone-500 mb-1 block flex items-center gap-2">
+                      <CreditCard size={12} /> Transferencia
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={splitPayments.transfer.toFixed(2)}
+                      onChange={(e) => {
+                        const transfer = parseFloat(e.target.value) || 0;
+                        const remaining = Math.max(0, cartTotal - transfer);
+                        setSplitPayments({ cash: remaining, transfer });
+                      }}
+                      className="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:ring-2 ring-blue-500 font-bold text-lg"
+                    />
+                  </div>
+
+                  <div className="pt-3 border-t border-purple-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-purple-600 uppercase">Suma:</span>
+                      <span className={cn("text-lg font-black", (splitPayments.cash + splitPayments.transfer) === cartTotal ? "text-emerald-600" : "text-rose-500")}>
+                        ${(splitPayments.cash + splitPayments.transfer).toFixed(2)}
+                      </span>
+                    </div>
+                    {(splitPayments.cash + splitPayments.transfer) !== cartTotal && (
+                      <p className="text-xs text-rose-500 font-bold mt-1">
+                        La suma debe ser igual al total (${cartTotal.toFixed(2)})
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
               <div className="flex gap-3">
                 <button onClick={() => setShowPaymentModal(false)} className="flex-1 py-4 rounded-2xl font-bold text-stone-500 bg-stone-100">Cancelar</button>
-                <button disabled={!paymentMethod || loading} onClick={handleProcessSale} className="flex-[2] py-4 rounded-2xl font-bold text-white bg-emerald-600 shadow-lg shadow-emerald-100 disabled:opacity-50">
+                <button 
+                  disabled={!paymentMethod || loading || (paymentMethod === 'split' && (splitPayments.cash + splitPayments.transfer) !== cartTotal)} 
+                  onClick={handleProcessSale} 
+                  className="flex-[2] py-4 rounded-2xl font-bold text-white bg-emerald-600 shadow-lg shadow-emerald-100 disabled:opacity-50"
+                >
                   {loading ? "Procesando..." : "Confirmar Venta"}
                 </button>
               </div>
