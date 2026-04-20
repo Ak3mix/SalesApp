@@ -44,7 +44,8 @@ try {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       session_id INTEGER,
       total REAL,
-      payment_method TEXT CHECK(payment_method IN ('cash', 'transfer')),
+      payment_method TEXT CHECK(payment_method IN ('cash', 'transfer', 'split')),
+      payments_json TEXT,
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(session_id) REFERENCES sessions(id)
     );
@@ -250,13 +251,20 @@ async function startServer() {
   // Sales
   app.post("/api/sales", (req, res) => {
     try {
-      const { items, payment_method, total } = req.body;
-      console.log(`Sale request: total ${total} via ${payment_method}`);
+      const { items, payment_method, total, payments } = req.body;
+      console.log(`Sale request: total ${total} via ${payment_method}`, payments ? `with split: ${JSON.stringify(payments)}` : '');
       const session = getCurrentSession();
 
       const transaction = db.transaction(() => {
-        const saleInfo = db.prepare("INSERT INTO sales (session_id, total, payment_method) VALUES (?, ?, ?)")
-          .run(session.id, total, payment_method);
+        let paymentsJson: string | null = null;
+        
+        // If split payment, store the payment breakdown
+        if (payment_method === 'split' && payments) {
+          paymentsJson = JSON.stringify(payments);
+        }
+        
+        const saleInfo = db.prepare("INSERT INTO sales (session_id, total, payment_method, payments_json) VALUES (?, ?, ?, ?)")
+          .run(session.id, total, payment_method, paymentsJson);
         const saleId = saleInfo.lastInsertRowid;
 
         for (const item of items) {
