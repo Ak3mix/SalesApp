@@ -25,27 +25,24 @@ venv/
 # Environment variables
 .env
 .env.local
-*.env.*
+.env.*
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Testing
-.coverage
+# Coverage
 coverage/
 htmlcov/
-.pytest_cache/
-.mypy_cache/
+.coverage
 
-# Compression
+# Compressed files
 *.zip
 *.gz
 *.tar

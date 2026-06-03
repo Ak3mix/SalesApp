@@ -1031,6 +1031,8 @@ export default function App() {
   const [showCartModal, setShowCartModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'split' | null>(null);
   const [splitPayments, setSplitPayments] = useState<{ cash: number; transfer: number }>({ cash: 0, transfer: 0 });
+  const [cashInput, setCashInput] = useState('');
+  const [transferInput, setTransferInput] = useState('');
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -1084,23 +1086,70 @@ export default function App() {
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+  // Helper function to initialize split payments when selecting payment method
+  const initializeSplitPayments = (method: 'cash' | 'transfer' | 'split') => {
+    setPaymentMethod(method);
+    if (method === 'cash') {
+      setSplitPayments({ cash: cartTotal, transfer: 0 });
+      setCashInput(cartTotal.toFixed(2));
+      setTransferInput('');
+    } else if (method === 'transfer') {
+      setSplitPayments({ cash: 0, transfer: cartTotal });
+      setCashInput('');
+      setTransferInput(cartTotal.toFixed(2));
+    } else if (method === 'split') {
+      const halfCash = Math.round((cartTotal / 2) * 100) / 100;
+      const halfTransfer = Math.round((cartTotal - halfCash) * 100) / 100;
+      setSplitPayments({ cash: halfCash, transfer: halfTransfer });
+      setCashInput(halfCash.toFixed(2));
+      setTransferInput(halfTransfer.toFixed(2));
+    }
+  };
+
+  // Helper function to handle cash input change
+  const handleCashInputChange = (value: string) => {
+    setCashInput(value);
+    const cashNum = parseFloat(value) || 0;
+    const transferNum = Math.max(0, Math.round((cartTotal - cashNum) * 100) / 100);
+    setSplitPayments({ cash: cashNum, transfer: transferNum });
+    setTransferInput(transferNum.toFixed(2));
+  };
+
+  // Helper function to handle transfer input change
+  const handleTransferInputChange = (value: string) => {
+    setTransferInput(value);
+    const transferNum = parseFloat(value) || 0;
+    const cashNum = Math.max(0, Math.round((cartTotal - transferNum) * 100) / 100);
+    setSplitPayments({ cash: cashNum, transfer: transferNum });
+    setCashInput(cashNum.toFixed(2));
+  };
+
   const handleProcessSale = async () => {
     if (!paymentMethod) return;
     setLoading(true);
     try {
-      const saleData: any = {
-        items: cart,
-        payment_method: paymentMethod,
-        total: cartTotal
-      };
+      // Calculate final amounts based on payment method
+      let finalPaymentMethod = paymentMethod;
+      let finalPayments = undefined;
       
-      // If split payment, include the payment breakdown
       if (paymentMethod === 'split') {
-        saleData.payments = [
+        // For split payment, use the actual values from splitPayments state
+        finalPayments = [
           { method: 'cash' as const, amount: splitPayments.cash },
           { method: 'transfer' as const, amount: splitPayments.transfer }
         ];
+      } else if (paymentMethod === 'cash') {
+        finalPayments = [{ method: 'cash' as const, amount: cartTotal }];
+      } else if (paymentMethod === 'transfer') {
+        finalPayments = [{ method: 'transfer' as const, amount: cartTotal }];
       }
+      
+      const saleData: any = {
+        items: cart,
+        payment_method: finalPaymentMethod,
+        total: cartTotal,
+        payments: finalPayments
+      };
       
       const res = await api.createSale(saleData);
       if (res) {
@@ -1108,6 +1157,8 @@ export default function App() {
         setShowPaymentModal(false);
         setPaymentMethod(null);
         setSplitPayments({ cash: 0, transfer: 0 });
+        setCashInput('');
+        setTransferInput('');
         await fetchProducts();
         alert("¡Venta realizada con éxito!");
       } else {
@@ -1376,21 +1427,21 @@ export default function App() {
               {/* Payment Method Selection */}
               <div className="grid grid-cols-3 gap-3 mb-6">
                 <button 
-                  onClick={() => { setPaymentMethod('cash'); setSplitPayments({ cash: cartTotal, transfer: 0 }); }} 
+                  onClick={() => initializeSplitPayments('cash')} 
                   className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'cash' ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-stone-100 bg-stone-50 text-stone-500")}
                 >
                   <DollarSign size={28} />
                   <span className="font-bold text-xs">Efectivo</span>
                 </button>
                 <button 
-                  onClick={() => { setPaymentMethod('transfer'); setSplitPayments({ cash: 0, transfer: cartTotal }); }} 
+                  onClick={() => initializeSplitPayments('transfer')} 
                   className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'transfer' ? "border-blue-500 bg-blue-50 text-blue-700" : "border-stone-100 bg-stone-50 text-stone-500")}
                 >
                   <CreditCard size={28} />
                   <span className="font-bold text-xs">Transferencia</span>
                 </button>
                 <button 
-                  onClick={() => { setPaymentMethod('split'); setSplitPayments({ cash: Math.round(cartTotal / 2 * 100) / 100, transfer: Math.round((cartTotal - Math.round(cartTotal / 2 * 100) / 100) * 100) / 100 }); }} 
+                  onClick={() => initializeSplitPayments('split')} 
                   className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'split' ? "border-purple-500 bg-purple-50 text-purple-700" : "border-stone-100 bg-stone-50 text-stone-500")}
                 >
                   <div className="flex items-center gap-1">
@@ -1417,18 +1468,8 @@ export default function App() {
                     <input
                       type="number"
                       step="0.01"
-                      value={splitPayments.cash === 0 ? '' : splitPayments.cash.toFixed(2)}
-                      onChange={(e) => {
-                        const cash = parseFloat(e.target.value) || 0;
-                        setSplitPayments(prev => ({ ...prev, cash }));
-                      }}
-                      onBlur={() => {
-                        // When leaving the field, adjust transfer to match total
-                        setSplitPayments(prev => ({
-                          ...prev,
-                          transfer: Math.max(0, cartTotal - prev.cash)
-                        }));
-                      }}
+                      value={cashInput}
+                      onChange={(e) => handleCashInputChange(e.target.value)}
                       className="w-full bg-white border-2 border-purple-200 rounded-xl p-3 focus:ring-2 ring-purple-500 font-bold text-lg"
                     />
                   </div>
@@ -1440,18 +1481,8 @@ export default function App() {
                     <input
                       type="number"
                       step="0.01"
-                      value={splitPayments.transfer === 0 ? '' : splitPayments.transfer.toFixed(2)}
-                      onChange={(e) => {
-                        const transfer = parseFloat(e.target.value) || 0;
-                        setSplitPayments(prev => ({ ...prev, transfer }));
-                      }}
-                      onBlur={() => {
-                        // When leaving the field, adjust cash to match total
-                        setSplitPayments(prev => ({
-                          ...prev,
-                          cash: Math.max(0, cartTotal - prev.transfer)
-                        }));
-                      }}
+                      value={transferInput}
+                      onChange={(e) => handleTransferInputChange(e.target.value)}
                       className="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:ring-2 ring-blue-500 font-bold text-lg"
                     />
                   </div>
@@ -1459,11 +1490,11 @@ export default function App() {
                   <div className="pt-3 border-t border-purple-200">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-purple-600 uppercase">Suma:</span>
-                      <span className={cn("text-lg font-black", (splitPayments.cash + splitPayments.transfer) === cartTotal ? "text-emerald-600" : "text-rose-500")}>
+                      <span className={cn("text-lg font-black", Math.abs((splitPayments.cash + splitPayments.transfer) - cartTotal) < 0.01 ? "text-emerald-600" : "text-rose-500")}>
                         ${(splitPayments.cash + splitPayments.transfer).toFixed(2)}
                       </span>
                     </div>
-                    {(splitPayments.cash + splitPayments.transfer) !== cartTotal && (
+                    {Math.abs((splitPayments.cash + splitPayments.transfer) - cartTotal) >= 0.01 && (
                       <p className="text-xs text-rose-500 font-bold mt-1">
                         La suma debe ser igual al total (${cartTotal.toFixed(2)})
                       </p>
@@ -1476,7 +1507,7 @@ export default function App() {
               <div className="flex gap-3">
                 <button onClick={() => setShowPaymentModal(false)} className="flex-1 py-4 rounded-2xl font-bold text-stone-500 bg-stone-100">Cancelar</button>
                 <button 
-                  disabled={!paymentMethod || loading || (paymentMethod === 'split' && (splitPayments.cash + splitPayments.transfer) !== cartTotal)} 
+                  disabled={!paymentMethod || loading || (paymentMethod === 'split' && Math.abs((splitPayments.cash + splitPayments.transfer) - cartTotal) >= 0.01)} 
                   onClick={handleProcessSale} 
                   className="flex-[2] py-4 rounded-2xl font-bold text-white bg-emerald-600 shadow-lg shadow-emerald-100 disabled:opacity-50"
                 >
