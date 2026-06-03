@@ -1390,7 +1390,7 @@ export default function App() {
                   <span className="font-bold text-xs">Transferencia</span>
                 </button>
                 <button 
-                  onClick={() => { setPaymentMethod('split'); setSplitPayments({ cash: cartTotal / 2, transfer: cartTotal / 2 }); }} 
+                  onClick={() => { setPaymentMethod('split'); setSplitPayments({ cash: Math.round(cartTotal / 2 * 100) / 100, transfer: Math.round((cartTotal - Math.round(cartTotal / 2 * 100) / 100) * 100) / 100 }); }} 
                   className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all", paymentMethod === 'split' ? "border-purple-500 bg-purple-50 text-purple-700" : "border-stone-100 bg-stone-50 text-stone-500")}
                 >
                   <div className="flex items-center gap-1">
@@ -1417,11 +1417,17 @@ export default function App() {
                     <input
                       type="number"
                       step="0.01"
-                      value={splitPayments.cash.toFixed(2)}
+                      value={splitPayments.cash === 0 ? '' : splitPayments.cash.toFixed(2)}
                       onChange={(e) => {
                         const cash = parseFloat(e.target.value) || 0;
-                        const remaining = Math.max(0, cartTotal - cash);
-                        setSplitPayments({ cash, transfer: remaining });
+                        setSplitPayments(prev => ({ ...prev, cash }));
+                      }}
+                      onBlur={() => {
+                        // When leaving the field, adjust transfer to match total
+                        setSplitPayments(prev => ({
+                          ...prev,
+                          transfer: Math.max(0, cartTotal - prev.cash)
+                        }));
                       }}
                       className="w-full bg-white border-2 border-purple-200 rounded-xl p-3 focus:ring-2 ring-purple-500 font-bold text-lg"
                     />
@@ -1434,11 +1440,17 @@ export default function App() {
                     <input
                       type="number"
                       step="0.01"
-                      value={splitPayments.transfer.toFixed(2)}
+                      value={splitPayments.transfer === 0 ? '' : splitPayments.transfer.toFixed(2)}
                       onChange={(e) => {
                         const transfer = parseFloat(e.target.value) || 0;
-                        const remaining = Math.max(0, cartTotal - transfer);
-                        setSplitPayments({ cash: remaining, transfer });
+                        setSplitPayments(prev => ({ ...prev, transfer }));
+                      }}
+                      onBlur={() => {
+                        // When leaving the field, adjust cash to match total
+                        setSplitPayments(prev => ({
+                          ...prev,
+                          cash: Math.max(0, cartTotal - prev.transfer)
+                        }));
                       }}
                       className="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:ring-2 ring-blue-500 font-bold text-lg"
                     />
