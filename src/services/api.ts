@@ -83,9 +83,20 @@ export const api = {
     });
     localDB.set('products', products);
 
-    // Record sale
+    // Record sale - serialize payments as JSON string for split payments
     const sales = localDB.get('sales');
-    const newSale = { ...sale, id: Date.now(), session_id: session.id, timestamp: new Date().toISOString() };
+    const newSale: any = { 
+      ...sale, 
+      id: Date.now(), 
+      session_id: session.id, 
+      timestamp: new Date().toISOString()
+    };
+    
+    // Convert payments array to JSON string for storage
+    if (sale.payments && Array.isArray(sale.payments)) {
+      newSale.payments_json = JSON.stringify(sale.payments);
+    }
+    
     sales.push(newSale);
     localDB.set('sales', sales);
 
