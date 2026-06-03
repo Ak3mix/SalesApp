@@ -776,7 +776,17 @@ function ReportsTab({ products, onSessionClose }: { products: Product[], onSessi
               acc.transfer += payment.amount;
             }
           }
+        } else if (s.payment_method === 'split' && s.payments && Array.isArray(s.payments)) {
+          // Handle case where payments is already an array (not yet stringified)
+          for (const payment of s.payments) {
+            if (payment.method === 'cash') {
+              acc.cash += payment.amount;
+            } else if (payment.method === 'transfer') {
+              acc.transfer += payment.amount;
+            }
+          }
         } else {
+          // Fallback: if we can't determine, add to transfer (should not happen normally)
           acc.transfer += s.total;
         }
         acc.total += s.total;
@@ -904,7 +914,17 @@ function ReportsTab({ products, onSessionClose }: { products: Product[], onSessi
           acc.transfer += payment.amount;
         }
       }
+    } else if (s.payment_method === 'split' && s.payments && Array.isArray(s.payments)) {
+      // Handle case where payments is already an array (not yet stringified)
+      for (const payment of s.payments) {
+        if (payment.method === 'cash') {
+          acc.cash += payment.amount;
+        } else if (payment.method === 'transfer') {
+          acc.transfer += payment.amount;
+        }
+      }
     } else {
+      // Fallback: if we can't determine, add to transfer (should not happen normally)
       acc.transfer += s.total;
     }
     acc.total += s.total;
