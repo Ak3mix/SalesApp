@@ -64,6 +64,7 @@ interface Sale {
   total: number;
   payment_method: 'cash' | 'transfer' | 'split';
   payments?: { method: 'cash' | 'transfer'; amount: number }[];
+  payments_json?: string;
   timestamp: string;
 }
 
@@ -761,8 +762,23 @@ function ReportsTab({ products, onSessionClose }: { products: Product[], onSessi
       const data = await api.getSessionReport(sessionId);
       
       const totals = data.sales.reduce((acc: any, s: any) => {
-        if (s.payment_method === 'cash') acc.cash += s.total;
-        else acc.transfer += s.total;
+        if (s.payment_method === 'cash') {
+          acc.cash += s.total;
+        } else if (s.payment_method === 'transfer') {
+          acc.transfer += s.total;
+        } else if (s.payment_method === 'split' && s.payments_json) {
+          // For split payments, parse the payments_json and add to each total
+          const payments = JSON.parse(s.payments_json);
+          for (const payment of payments) {
+            if (payment.method === 'cash') {
+              acc.cash += payment.amount;
+            } else if (payment.method === 'transfer') {
+              acc.transfer += payment.amount;
+            }
+          }
+        } else {
+          acc.transfer += s.total;
+        }
         acc.total += s.total;
         return acc;
       }, { cash: 0, transfer: 0, total: 0 });
@@ -874,8 +890,23 @@ function ReportsTab({ products, onSessionClose }: { products: Product[], onSessi
   };
 
   const totals = reportData?.sales.reduce((acc, s) => {
-    if (s.payment_method === 'cash') acc.cash += s.total;
-    else acc.transfer += s.total;
+    if (s.payment_method === 'cash') {
+      acc.cash += s.total;
+    } else if (s.payment_method === 'transfer') {
+      acc.transfer += s.total;
+    } else if (s.payment_method === 'split' && s.payments_json) {
+      // For split payments, parse the payments_json and add to each total
+      const payments = JSON.parse(s.payments_json);
+      for (const payment of payments) {
+        if (payment.method === 'cash') {
+          acc.cash += payment.amount;
+        } else if (payment.method === 'transfer') {
+          acc.transfer += payment.amount;
+        }
+      }
+    } else {
+      acc.transfer += s.total;
+    }
     acc.total += s.total;
     return acc;
   }, { cash: 0, transfer: 0, total: 0 }) || { cash: 0, transfer: 0, total: 0 };
