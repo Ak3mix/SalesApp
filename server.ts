@@ -258,8 +258,8 @@ async function startServer() {
       const transaction = db.transaction(() => {
         let paymentsJson: string | null = null;
         
-        // If split payment, store the payment breakdown
-        if (payment_method === 'split' && payments) {
+        // Store the payment breakdown for all payment methods
+        if (payments && Array.isArray(payments)) {
           paymentsJson = JSON.stringify(payments);
         }
         
