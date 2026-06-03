@@ -1,52 +1,49 @@
 ```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Dependencies
 node_modules/
-
-# Environment variables
+venv/
+.venv/
 .env
 .env.local
 .env.*
 
-# Build outputs
+# Build directories
 dist/
 build/
 target/
-*.min.js
-*.min.css
-*.bundle.js
-*.bundle.css
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
 
-# Logs
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-
-# IDE
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Temporary files
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
 *.tmp
-*.temp
 
-# Coverage
-coverage/
-htmlcov/
-*.coverage
-
-# Compressed archives
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -55,8 +52,6 @@ htmlcov/
 *.xz
 *.7z
 *.rar
-*.Z
-*.lz
 *.zst
 *.lz4
 *.lzh
@@ -64,417 +59,11 @@ htmlcov/
 *.arj
 *.rpm
 *.deb
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Sensitive
-config.json
-secrets.json
-*.key
-*.pem
-*.crt
-*.cert
-
-# Browser extensions
-*.crx
-*.xpi
-
-# Mobile
-*.ipa
-*.apk
-*.aab
-
-# Java
-*.class
-*.jar
-*.war
-*.ear
-*.jsp
-
-# C/C++
-*.o
-*.a
-*.so
-*.obj
-*.out
-*.exe
-*.dll
-*.lib
-*.pdb
-*.ilk
-
-# Go
-*.exe
-*.test
-*.prof
-
-# Rust
-*.o
-*.rlib
-*.so
-*.dylib
-*.dll
-*.exe
-
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Bower
-bower_components/
-
-# Grunt
-.grunt
-
-# Gulp
-.gulp
-
-# Composer
-vendor/
-
-# Web components
-bower_components/
-
-# Jspm
-jspm_packages/
-
-# Yarn
-.yarn-integrity
-.yarn/
-pnp.*
-
-# Vim
-*.swp
-*.swo
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-
-# Sublime Text
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.sublime-workspace
-
-# IntelliJ IDEA
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# Eclipse
-.metadata
-bin/
-tmp/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.settings/
-.loadpath
-.recommenders
-
-# Visual Studio
-*.sln
-*.csproj
-*.user
-*.userosscache
-*.suo
-*.pch
-*.ncb
-*.vcxproj.filters
-*.VC.db
-*.VC.VC.opendb
-
-# CodeLite
-*.project
-*.workspace
-*.user
-*.session
-
-# Sublime
-*.sublime-project
-*.sublime-workspace
-
-# NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-# BlueJ
-*.ctxt
-
-# Code::Blocks
-*.depend
-*.layout
-
-# Dev-C++
-*.dev
-
-# Visual Studio Code
-.vscode/
-
-# Android Studio
-*.iml
-*.ipr
-*.iws
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-*.VC.db
-*.VC.VC.opendb
-captures/
-*.capnp
-*.capnp.h
-*.capnp.c++
-*.capnpc-*.h
-*.capnpc-*.c++
-*.capnpc-go
-*.capnpc-java
-*.capnpc-python
-*.capnpc-rust
-*.capnpc-ts
-*.capnpc-elixir
-*.capnpc-erlang
-*.capnpc-php
-*.capnpc-scheme
-*.capnpc-ruby
-*.capnpc-objc
-*.capnpc-csharp
-*.capnpc-json
-*.capnpc-dart
-*.capnpc-nim
-*.capnpc-odot
-*.capnpc-zig
-*.capnpc-swift
-*.capnpc-haskell
-*.capnpc-protobuf
-*.capnpc-flatbuffers
-*.capnpc-jsonschema
-*.capnpc-graphql
-*.capnpc-thrift
-*.capnpc-yaml
-*.capnpc-xml
-*.capnpc-msgpack
-*.capnpc-avro
-*.capnpc-parquet
-*.capnpc-orc
-*.capnpc-iceberg
-*.capnpc-delta
-*.capnpc-hudi
-*.capnpc-pulsar
-*.capnpc-kafka
-*.capnpc-redis
-*.capnpc-mongo
-*.capnpc-cassandra
-*.capnpc-elasticsearch
-*.capnpc-solr
-*.capnpc-druid
-*.capnpc-clickhouse
-*.capnpc-influxdb
-*.capnpc-prometheus
-*.capnpc-grafana
-*.capnpc-opentsdb
-*.capnpc-riak
-*.capnpc-couchbase
-*.capnpc-firestore
-*.capnpc-bigquery
-*.capnpc-redshift
-*.capnpc-snowflake
-*.capnpc-databricks
-*.capnpc-spark
-*.capnpc-flink
-*.capnpc-kinesis
-*.capnpc-sqs
-*.capnpc-sns
-*.capnpc-dynamodb
-*.capnpc-s3
-*.capnpc-gcs
-*.capnpc-azureblob
-*.capnpc-azuresqldb
-*.capnpc-azuresqlmi
-*.capnpc-azuresql
-*.capnpc-azuresynapse
-*.capnpc-azurecosmos
-*.capnpc-azuredatalake
-*.capnpc-azuresearch
-*.capnpc-azureeventhubs
-*.capnpc-azureiot
-*.capnpc-azurefunctions
-*.capnpc-azureappservice
-*.capnpc-azurebatch
-*.capnpc-azurecontainerregistry
-*.capnpc-azurekeyvault
-*.capnpc-azuremonitor
-*.capnpc-azureactivedirectory
-*.capnpc-azuread
-*.capnpc-azuredevops
-*.capnpc-azurestorage
-*.capnpc-azureservicebus
-*.capnpc-azureservicefabric
-*.capnpc-azuremanagedidentity
-*.capnpc-azurepolicy
-*.capnpc-azureautomation
-*.capnpc-azureadvisor
-*.capnpc-azurecostmanagement
-*.capnpc-azureconsumption
-*.capnpc-azurecommerce
-*.capnpc-azurebilling
-*.capnpc-azuremarketplace
-*.capnpc-azureportal
-*.capnpc-azuresupport
-*.capnpc-azuresubscription
-*.capnpc-azuretenant
-*.capnpc-azuregraph
-*.capnpc-azureauthorization
-*.capnpc-azurepolicyinsights
-*.capnpc-azurepolicytroubleshooting
-*.capnpc-azurepolicyremediation
-*.capnpc-azurepolicyassignments
-*.capnpc-azurepolicydefinitions
-*.capnpc-azurepolicysetdefinitions
-*.capnpc-azurepolicyexemptions
-*.capnpc-azurepolicycompliance
-*.capnpc-azurepolicyevaluationdetails
-*.capnpc-azurepolicyevaluationresultspaged
-*.capnpc-azurepolicyevaluationresults
-*.capnpc-azurepolicyevaluationresultitem
-*.capnpc-azurepolicyevaluationresultsummary
-*.capnpc-azurepolicyevaluationresultsummaryitem
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc......capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluation......capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicyevaluationresultsummaryitempaged
-*.capnpc-azurepolicy......
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+```

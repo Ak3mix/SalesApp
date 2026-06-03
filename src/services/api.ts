@@ -20,23 +20,10 @@ const localDB = {
 
 export const api = {
   async getProducts() {
-    try {
-      const res = await fetch('/api/products');
-      if (res.ok) return await res.json();
-    } catch (e) {}
     return localDB.get('products').filter((p: any) => !p.deleted);
   },
 
   async addProduct(product: any) {
-    try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product)
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    
     const products = localDB.get('products');
     const newProduct = { ...product, id: Date.now(), stock: product.initial_stock, deleted: 0 };
     localDB.set('products', [...products, newProduct]);
@@ -44,15 +31,6 @@ export const api = {
   },
 
   async updateProduct(id: number, product: any) {
-    try {
-      const res = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product)
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const products = localDB.get('products');
     const index = products.findIndex((p: any) => p.id === id);
     if (index !== -1) {
@@ -63,11 +41,6 @@ export const api = {
   },
 
   async deleteProduct(id: number) {
-    try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const products = localDB.get('products');
     const index = products.findIndex((p: any) => p.id === id);
     if (index !== -1) {
@@ -78,15 +51,6 @@ export const api = {
   },
 
   async moveInventory(move: any) {
-    try {
-      const res = await fetch('/api/inventory/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(move)
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const products = localDB.get('products');
     const product = products.find((p: any) => p.id === move.product_id);
     if (product) {
@@ -109,15 +73,6 @@ export const api = {
   },
 
   async createSale(sale: any) {
-    try {
-      const res = await fetch('/api/sales', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sale)
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const session = localDB.getCurrentSession();
     const products = localDB.get('products');
     
@@ -153,11 +108,6 @@ export const api = {
   },
 
   async getCurrentReport() {
-    try {
-      const res = await fetch('/api/reports/current');
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const session = localDB.getCurrentSession();
     const sales = localDB.get('sales').filter((s: any) => s.session_id === session.id);
     const movements = localDB.get('movements').filter((m: any) => m.session_id === session.id);
@@ -165,19 +115,10 @@ export const api = {
   },
 
   async getSessionHistory() {
-    try {
-      const res = await fetch('/api/sessions/history');
-      if (res.ok) return await res.json();
-    } catch (e) {}
     return localDB.get('sessions').filter((s: any) => s.is_closed === 1).sort((a: any, b: any) => b.id - a.id);
   },
 
   async closeSession() {
-    try {
-      const res = await fetch('/api/sessions/close', { method: 'POST' });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const sessions = localDB.get('sessions');
     const current = sessions.find((s: any) => s.is_closed === 0);
     if (current) {
@@ -191,11 +132,6 @@ export const api = {
   },
 
   async getSessionReport(id: number) {
-    try {
-      const res = await fetch(`/api/reports/session/${id}`);
-      if (res.ok) return await res.json();
-    } catch (e) {}
-
     const sales = localDB.get('sales').filter((s: any) => s.session_id === id);
     const movements = localDB.get('movements').filter((m: any) => m.session_id === id);
     return { sales, movements };

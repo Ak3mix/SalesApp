@@ -203,12 +203,6 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
     console.log("handleAddProduct: Sending data:", data);
     setIsSaving(true);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.log("handleAddProduct: Request timeout reached");
-        controller.abort();
-      }, 10000);
-
       const res = await api.addProduct(data);
 
       console.log("handleAddProduct: Response received");
@@ -222,11 +216,7 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
       }
     } catch (error: any) {
       console.error("handleAddProduct: Catch error:", error);
-      if (error.name === 'AbortError') {
-        alert("La solicitud tardó demasiado. Revisa tu conexión.");
-      } else {
-        alert("Error de red: No se pudo conectar con el servidor");
-      }
+      alert("Error al guardar el producto. Intente nuevamente.");
     } finally {
       console.log("handleAddProduct: Finally block reached");
       setIsSaving(false);
@@ -260,15 +250,9 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
       image: formImage || undefined
     };
 
-    console.log("handleEditProduct: Sending data to /api/products/" + showEditProduct.id, data);
+    console.log("handleEditProduct: Sending data", data);
     setIsSaving(true);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.log("handleEditProduct: Request timeout reached");
-        controller.abort();
-      }, 10000);
-
       const res = await api.updateProduct(showEditProduct.id, data);
 
       console.log("handleEditProduct: Response received");
@@ -282,11 +266,7 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
       }
     } catch (error: any) {
       console.error("handleEditProduct: Catch error:", error);
-      if (error.name === 'AbortError') {
-        alert("La solicitud tardó demasiado. Revisa tu conexión.");
-      } else {
-        alert("Error de red: No se pudo conectar con el servidor");
-      }
+      alert("Error al actualizar el producto. Intente nuevamente.");
     } finally {
       console.log("handleEditProduct: Finally block reached");
       setIsSaving(false);
@@ -305,7 +285,8 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
         alert("No se pudo eliminar el producto");
       }
     } catch (error) {
-      alert("Error de conexión al eliminar producto");
+      console.error("handleDeleteProduct error:", error);
+      alert("Error al eliminar el producto. Intente nuevamente.");
     } finally {
       setIsDeleting(false);
     }
@@ -329,7 +310,8 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
         alert("Error en el movimiento");
       }
     } catch (error) {
-      alert("Error de conexión");
+      console.error("handleMove error:", error);
+      alert("Error en el movimiento. Intente nuevamente.");
     }
   };
 
@@ -767,7 +749,8 @@ function ReportsTab({ products, onSessionClose }: { products: Product[], onSessi
         alert("No se pudo cerrar la jornada");
       }
     } catch (error) {
-      alert("Error de conexión");
+      console.error("handleCloseDay error:", error);
+      alert("Error al cerrar la jornada. Intente nuevamente.");
     } finally {
       setIsClosing(false);
     }
@@ -1100,7 +1083,8 @@ export default function App() {
         alert("Error al procesar la venta");
       }
     } catch (error) {
-      alert("Error de conexión");
+      console.error("handlePay error:", error);
+      alert("Error al procesar el pago. Intente nuevamente.");
     } finally {
       setLoading(false);
     }
