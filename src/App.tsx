@@ -122,14 +122,23 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
         quality: 80,
         allowEditing: false,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Camera
+        source: CameraSource.Camera,
+        preserveAspectRatio: true,
+        correctOrientation: true,
+        promptLabelHeader: 'Cámara',
+        promptLabelCancel: 'Cancelar'
       });
       if (photo.base64String) {
         const imageFormat = photo.format || 'jpeg';
         setFormImage(`data:image/${imageFormat};base64,${photo.base64String}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al tomar foto:', error);
+      if (error.message?.includes('permission') || error.message?.includes('Permission')) {
+        alert('La aplicación necesita permiso de cámara. Actívalo en Ajustes > Aplicaciones.');
+      } else if (error.message?.includes('no activity')) {
+        alert('No se encontró una aplicación de cámara en este dispositivo.');
+      }
     }
   };
 
@@ -139,14 +148,23 @@ function InventoryTab({ products, onUpdate }: { products: Product[], onUpdate: (
         quality: 80,
         allowEditing: false,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Photos
+        source: CameraSource.Photos,
+        preserveAspectRatio: true,
+        correctOrientation: true,
+        promptLabelHeader: 'Galería',
+        promptLabelCancel: 'Cancelar'
       });
       if (photo.base64String) {
         const imageFormat = photo.format || 'jpeg';
         setFormImage(`data:image/${imageFormat};base64,${photo.base64String}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al seleccionar foto:', error);
+      if (error.message?.includes('permission') || error.message?.includes('Permission')) {
+        alert('La aplicación necesita permiso para acceder a las fotos. Actívalo en Ajustes > Aplicaciones.');
+      } else if (error.message?.includes('no activity')) {
+        alert('No se encontró una aplicación de galería en este dispositivo.');
+      }
     }
   };
 
