@@ -23,6 +23,12 @@ const config: CapacitorConfig = {
     NavigationBar: {
       style: 'LIGHT',
       overridesWebView: false
+    },
+    Camera: {
+      saveToGallery: false,
+      allowEditing: false,
+      quality: 80,
+      sourceType: ['camera', 'photos']
     }
   }
 };
