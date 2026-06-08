@@ -1,70 +1,150 @@
 
-// TEST EDIT
-import { ProductRepository } from './repositories/productRepository';
-import { SalesRepository } from './repositories/salesRepository';
-import { MovementRepository } from './repositories/movementRepository';
+const IS_NATIVE = window.location.protocol === 'capacitor:' || window.location.hostname === 'localhost' && !window.location.port;
+
+// Simple Local Storage based database for offline/native use
+const localDB = {
+  get: (key: string) => JSON.parse(localStorage.getItem(`vpro_${key}`) || '[]'),
+  set: (key: string, data: any) => localStorage.setItem(`vpro_${key}`, JSON.stringify(data)),
+  
+  // Helper to get current session or create one
+  getCurrentSession: () => {
+    const sessions = localDB.get('sessions');
+    let current = sessions.find((s: any) => s.is_closed === 0);
+    if (!current) {
+      current = { id: Date.now(), start_time: new Date().toISOString(), is_closed: 0, end_time: null };
+      localDB.set('sessions', [...sessions, current]);
+    }
+    return current;
+  }
+};
 
 export const api = {
   async getProducts() {
-    return ProductRepository.getAll();
+    return localDB.get('products').filter((p: any) => !p.deleted);
   },
 
   async addProduct(product: any) {
-    return ProductRepository.add(product);
+    const products = localDB.get('products');
+    const newProduct = { ...product, id: Date.now(), stock: product.initial_stock, deleted: 0 };
+    localDB.set('products', [...products, newProduct]);
+    return newProduct;
   },
 
   async updateProduct(id: number, product: any) {
-    return ProductRepository.update(id, product);
+    const products = localDB.get('products');
+    const index = products.findIndex((p: any) => p.id === id);
+    if (index !== -1) {
+      products[index] = { ...products[index], ...product };
+      localDB.set('products', products);
+    }
+    return { success: true };
   },
 
   async deleteProduct(id: number) {
-    return ProductRepository.delete(id);
+    const products = localDB.get('products');
+    const index = products.findIndex((p: any) => p.id === id);
+    if (index !== -1) {
+      products[index].deleted = 1;
+      localDB.set('products', products);
+    }
+    return { success: true };
   },
 
   async moveInventory(move: any) {
-    // Need to handle stock update and movement record here
-    // Reusing existing logic but calling repositories
-    // For brevity, I'll implement it inline for now, later refactor
-    await MovementRepository.add(move);
+    const products = localDB.get('products');
+    const product = products.find((p: any) => p.id === move.product_id);
+    if (product) {
+      if (move.type === 'entry') product.stock += move.quantity;
+      else if (move.type === 'waste') product.stock -= move.quantity;
+      localDB.set('products', products);
+      
+      const session = localDB.getCurrentSession();
+      const movements = localDB.get('movements');
+      movements.push({ 
+        ...move, 
+        product_name: product.name,
+        id: Date.now(), 
+        session_id: session.id, 
+        timestamp: new Date().toISOString() 
+      });
+      localDB.set('movements', movements);
+    }
     return { success: true };
   },
 
   async createSale(sale: any) {
-    const session = await this.getCurrentSession();
-    sale.session_id = session.id;
-    return await SalesRepository.createSale(sale);
+    const session = localDB.getCurrentSession();
+    const products = localDB.get('products');
+    
+    // Update stocks
+    sale.items.forEach((item: any) => {
+      const p = products.find((prod: any) => prod.id === item.id);
+      if (p) p.stock -= item.quantity;
+    });
+    localDB.set('products', products);
+
+    // Record sale - serialize payments as JSON string for split payments
+    const sales = localDB.get('sales');
+    const newSale: any = { 
+      ...sale, 
+      id: Date.now(), 
+      session_id: session.id, 
+      timestamp: new Date().toISOString()
+    };
+    
+    // Convert payments array to JSON string for storage
+    if (sale.payments && Array.isArray(sale.payments)) {
+      newSale.payments_json = JSON.stringify(sale.payments);
+    }
+    
+    sales.push(newSale);
+    localDB.set('sales', sales);
+
+    // Record movements
+    const movements = localDB.get('movements');
+    sale.items.forEach((item: any) => {
+      movements.push({
+        product_id: item.id,
+        product_name: item.name,
+        type: 'sale',
+        quantity: item.quantity,
+        reason: 'Venta',
+        session_id: session.id,
+        timestamp: new Date().toISOString()
+      });
+    });
+    localDB.set('movements', movements);
+
+    return { success: true, saleId: newSale.id };
   },
 
   async getCurrentReport() {
-    const session = await this.getCurrentSession();
-    const sales = await SalesRepository.getSalesBySession(session.id);
-    const movements = await MovementRepository.getBySession(session.id);
+    const session = localDB.getCurrentSession();
+    const sales = localDB.get('sales').filter((s: any) => s.session_id === session.id);
+    const movements = localDB.get('movements').filter((m: any) => m.session_id === session.id);
     return { sales, movements, session };
   },
 
   async getSessionHistory() {
-    return SalesRepository.getSessionHistory();
+    return localDB.get('sessions').filter((s: any) => s.is_closed === 1).sort((a: any, b: any) => b.id - a.id);
   },
 
   async closeSession() {
-    const session = await this.getCurrentSession();
-    await SalesRepository.closeSession(session.id, new Date().toISOString());
-    // Create new session
-    await SalesRepository.createSession({ start_time: new Date().toISOString() });
+    const sessions = localDB.get('sessions');
+    const current = sessions.find((s: any) => s.is_closed === 0);
+    if (current) {
+      current.is_closed = 1;
+      current.end_time = new Date().toISOString();
+      const next = { id: Date.now(), start_time: new Date().toISOString(), is_closed: 0, end_time: null };
+      sessions.push(next);
+      localDB.set('sessions', sessions);
+    }
     return { success: true };
   },
 
   async getSessionReport(id: number) {
-    const sales = await SalesRepository.getSalesBySession(id);
-    const movements = await MovementRepository.getBySession(id);
+    const sales = localDB.get('sales').filter((s: any) => s.session_id === id);
+    const movements = localDB.get('movements').filter((m: any) => m.session_id === id);
     return { sales, movements };
-  },
-
-  async getCurrentSession() {
-    let session = await SalesRepository.getCurrentSession();
-    if (!session) {
-      session = await SalesRepository.createSession({ start_time: new Date().toISOString() });
-    }
-    return session;
   }
 };
