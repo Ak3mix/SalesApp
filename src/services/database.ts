@@ -1,0 +1,130 @@
+import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
+
+class DatabaseService {
+  private sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite);
+  private db!: SQLiteDBConnection;
+  private readonly DB_NAME = 'sales_app.db';
+
+  async initializeDatabase() {
+    try {
+      this.db = await this.sqlite.createConnection(
+        this.DB_NAME,
+        false,
+        'no-encryption',
+        1,
+        false
+      );
+      await this.db.open();
+
+      await this.createSchema();
+      console.log('Database initialized successfully');
+    } catch (error) {
+      console.error('Error initializing database', error);
+      throw error;
+    }
+  }
+
+  private async createSchema() {
+    const schema = `
+      CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT,
+        name TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL,
+        cost REAL DEFAULT 0,
+        stock INTEGER NOT NULL,
+        initial_stock INTEGER DEFAULT 0,
+        category TEXT,
+        image_path TEXT,
+        deleted INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS customers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT,
+        address TEXT,
+        email TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS sales (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER,
+        session_id INTEGER,
+        total REAL NOT NULL,
+        payment_method TEXT,
+        status TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(customer_id) REFERENCES customers(id),
+        FOREIGN KEY(session_id) REFERENCES sessions(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS sale_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id INTEGER,
+        product_id INTEGER,
+        quantity INTEGER NOT NULL,
+        unit_price REAL NOT NULL,
+        subtotal REAL NOT NULL,
+        FOREIGN KEY(sale_id) REFERENCES sales(id),
+        FOREIGN KEY(product_id) REFERENCES products(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id INTEGER,
+        amount REAL NOT NULL,
+        payment_method TEXT,
+        payment_date TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(sale_id) REFERENCES sales(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start_time TEXT,
+        end_time TEXT,
+        is_closed INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS movements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER,
+        product_name TEXT,
+        type TEXT,
+        quantity INTEGER,
+        reason TEXT,
+        session_id INTEGER,
+        timestamp TEXT,
+        FOREIGN KEY(product_id) REFERENCES products(id),
+        FOREIGN KEY(session_id) REFERENCES sessions(id)
+      );
+    `;
+
+    await this.db.execute(schema);
+  }
+
+  async query(sql: string, params?: any[]) {
+    try {
+      return await this.db.query(sql, params);
+    } catch (error) {
+      console.error('Database Query Error:', sql, params, error);
+      throw error;
+    }
+  }
+
+  async run(sql: string, params?: any[]) {
+    try {
+      return await this.db.run(sql, params);
+    } catch (error) {
+      console.error('Database Run Error:', sql, params, error);
+      throw error;
+    }
+  }
+}
+
+export const dbService = new DatabaseService();

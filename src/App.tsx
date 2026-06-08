@@ -28,6 +28,8 @@ import { format } from 'date-fns';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { api } from './services/api';
+import { dbService } from './services/database';
+import { MigrationService } from './services/migration';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -1092,8 +1094,17 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchSession();
+    const init = async () => {
+      try {
+        await dbService.initializeDatabase();
+        await MigrationService.migrate();
+        await fetchProducts();
+        await fetchSession();
+      } catch (e) {
+        console.error("Error initializing app:", e);
+      }
+    };
+    init();
   }, []);
 
   const addToCart = (product: Product) => {
